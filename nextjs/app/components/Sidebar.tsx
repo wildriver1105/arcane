@@ -37,6 +37,11 @@ const menuItems = [
     icon: '⭐',
     path: '/evaluations',
   },
+  {
+    title: '데이터 맵',
+    icon: '🕸️',
+    path: '/graph',
+  },
 ];
 
 export default function Sidebar() {
