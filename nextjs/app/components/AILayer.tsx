@@ -1,24 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-
-interface AIMessage {
-  id: string;
-  text: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-}
+import { useAI } from '../contexts/AIContext';
 
 export default function AILayer() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<AIMessage[]>([
-    {
-      id: '1',
-      text: '안녕하세요! AI 어시스턴트입니다. 무엇을 도와드릴까요?',
-      sender: 'ai',
-      timestamp: new Date(),
-    },
-  ]);
+  const { isOpen, openAI, closeAI, messages, addMessage, clearMessages } = useAI();
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -74,28 +60,29 @@ export default function AILayer() {
   const sendMessage = () => {
     if (!inputText.trim()) return;
 
-    const userMessage: AIMessage = {
+    const userMessage = {
       id: Date.now().toString(),
       text: inputText,
-      sender: 'user',
+      sender: 'user' as const,
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    addMessage(userMessage);
+    const currentInput = inputText;
     setInputText('');
     setIsTyping(true);
 
     // AI 응답 시뮬레이션 (타이핑 효과)
     setTimeout(() => {
-      const aiResponse = simulateAIResponse(inputText);
-      const aiMessage: AIMessage = {
+      const aiResponse = simulateAIResponse(currentInput);
+      const aiMessage = {
         id: (Date.now() + 1).toString(),
         text: aiResponse,
-        sender: 'ai',
+        sender: 'ai' as const,
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, aiMessage]);
+      addMessage(aiMessage);
       setIsTyping(false);
     }, 1000 + Math.random() * 1000);
   };
@@ -114,16 +101,9 @@ export default function AILayer() {
     });
   };
 
-  const clearChat = () => {
+  const handleClearChat = () => {
     if (confirm('대화 기록을 모두 삭제하시겠습니까?')) {
-      setMessages([
-        {
-          id: '1',
-          text: '대화가 초기화되었습니다. 무엇을 도와드릴까요?',
-          sender: 'ai',
-          timestamp: new Date(),
-        },
-      ]);
+      clearMessages();
     }
   };
 
@@ -132,7 +112,7 @@ export default function AILayer() {
       {/* 플로팅 버튼 */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={openAI}
           className="fixed bottom-24 right-6 w-14 h-14 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-110 flex items-center justify-center z-50"
           aria-label="AI 어시스턴트 열기"
         >
@@ -159,7 +139,7 @@ export default function AILayer() {
           {/* 배경 오버레이 */}
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-[60] transition-opacity"
-            onClick={() => setIsOpen(false)}
+            onClick={closeAI}
           />
 
           {/* AI 레이어 창 */}
@@ -190,7 +170,7 @@ export default function AILayer() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={clearChat}
+                  onClick={handleClearChat}
                   className="text-white hover:text-gray-200 transition-colors p-2"
                   aria-label="대화 초기화"
                   title="대화 초기화"
@@ -211,7 +191,7 @@ export default function AILayer() {
                   </svg>
                 </button>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeAI}
                   className="text-white hover:text-gray-200 transition-colors p-2"
                   aria-label="AI 레이어 닫기"
                 >
