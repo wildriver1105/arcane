@@ -42,6 +42,11 @@ const menuItems = [
     icon: '🕸️',
     path: '/graph',
   },
+  {
+    title: '노트',
+    icon: '📝',
+    path: '/notes',
+  },
 ];
 
 export default function Sidebar() {
